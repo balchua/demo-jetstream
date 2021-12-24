@@ -8,11 +8,16 @@ import (
 )
 
 func SetupInfra(natsInfo *NatsInfo, streamSubjects string, streamName string) error {
+
+	consumerName := "GRP_MAKER"
+	consumerSubject := "USER_TXN.maker"
+	zap.S().Infof("setting up stream [%s] stream subject [%s]", streamName, streamSubjects)
 	if err := setupStream(natsInfo, streamSubjects, streamName); err != nil {
 		return err
 	}
 
-	if err := setupConsumer(natsInfo, streamName, "GRP_MAKER", "USER_TXN.maker"); err != nil {
+	zap.S().Infof("setting up consumer name [%s] on subject [%s]", consumerName, consumerSubject)
+	if err := setupConsumer(natsInfo, streamName, consumerName, consumerSubject); err != nil {
 		return err
 	}
 

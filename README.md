@@ -89,8 +89,6 @@ _View stream contents_
 nats stream view txn_stream
 ```
 
-
-
 _Get messages from stream for maker_
 
 ```shell
@@ -100,3 +98,14 @@ nats consumer next USER_TXN GRP_MAKER --count 50
 ## Auto create the STREAM and CONSUMERS
 
 This project will automatically create the `STREAMS` and `CONSUMERS`
+
+```shell
+demo-jetstream setup
+```
+
+This will setup the STREAM `USER_TXN` and the CONSUMER `GRP_MAKER`
+
+
+## Create Postgres DB
+
+TODO
