@@ -30,7 +30,11 @@ func (u *UserTransactionPublisher) Publish(message string, subject string) error
 	// }
 	// usrJson, _ := json.Marshal(usr)
 	zap.S().Infof("%s", message)
-	_, err := u.js.Publish(subject, []byte(message))
+	m := nats.NewMsg(subject)
+
+	m.Header.Add("CUSTOM_HEADER", "user-txn")
+	m.Data = []byte(message)
+	_, err := u.js.PublishMsg(m)
 	if err != nil {
 		return err
 	}

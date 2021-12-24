@@ -49,6 +49,7 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			for _, msg := range msgs {
 				msg.Ack()
 				var userTxn model.UserTransaction
+				zap.S().Infof("header: [%s]", msg.Header.Get("CUSTOM_HEADER"))
 				err := json.Unmarshal(msg.Data, &userTxn)
 				zap.S().Infof("%s", msg.Data)
 				if err != nil {
