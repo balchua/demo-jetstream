@@ -94,6 +94,11 @@ _Get messages from stream for maker_
 ```shell
 nats consumer next USER_TXN GRP_MAKER --count 50
 ```
+## Building
+
+```shell
+go build.
+```
 
 ## Auto create the STREAM and CONSUMERS
 
@@ -105,6 +110,12 @@ demo-jetstream setup
 
 This will setup the STREAM `USER_TXN` and the CONSUMER `GRP_MAKER`
 
+## Publish message
+
+This will publish 10 messages to the stream on subject `USER_TXN.maker`
+```shell
+./demo-jetstream publish
+```
 
 ## Create Postgres DB
 

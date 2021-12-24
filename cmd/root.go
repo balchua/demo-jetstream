@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
@@ -64,6 +65,7 @@ func init() {
 	Logger, _ := zap.NewDevelopment()
 	// Logger, _ := zap.S()
 	zap.ReplaceGlobals(Logger)
+	decimal.MarshalJSONWithoutQuotes = true
 }
 
 // initConfig reads in config file and ENV variables if set.

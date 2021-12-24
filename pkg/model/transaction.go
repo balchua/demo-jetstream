@@ -1,12 +1,12 @@
 package model
 
-import "google.golang.org/genproto/googleapis/type/decimal"
+import "github.com/shopspring/decimal"
 
 type UserTransaction struct {
-	TransactionID int
-	UserID        int
-	Status        string
-	Amount        decimal.Decimal
+	TransactionID int             `json:"TransactionID"`
+	UserID        int             `json:"UserID"`
+	Status        string          `json:"Status"`
+	Amount        decimal.Decimal `json:"Amount"`
 }
 
 type TransactionPublisher interface {

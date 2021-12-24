@@ -1,9 +1,6 @@
 package publisher
 
 import (
-	"encoding/json"
-
-	"github.com/balchua/demo-jetstream/pkg/model"
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
@@ -26,13 +23,14 @@ func NewTransactionPublisher() *UserTransactionPublisher {
 
 func (u *UserTransactionPublisher) Publish(message string, subject string) error {
 
-	usr := model.UserTransaction{
-		TransactionID: 1,
-		UserID:        1,
-		Status:        "OK",
-	}
-	usrJson, _ := json.Marshal(usr)
-	_, err := u.js.Publish(subject, usrJson)
+	// usr := model.UserTransaction{
+	// 	TransactionID: 1,
+	// 	UserID:        1,
+	// 	Status:        "OK",
+	// }
+	// usrJson, _ := json.Marshal(usr)
+	zap.S().Infof("%s", message)
+	_, err := u.js.Publish(subject, []byte(message))
 	if err != nil {
 		return err
 	}

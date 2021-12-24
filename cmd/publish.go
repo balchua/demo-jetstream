@@ -51,7 +51,7 @@ func publish(cmd *cobra.Command, args []string) {
 
 	pub := publisher.NewTransactionPublisher()
 	for i := 0; i < 10; i++ {
-		pub.Publish("abc", "USER_TXN.maker")
+		pub.Publish("{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}", "USER_TXN.maker")
 	}
 
 }

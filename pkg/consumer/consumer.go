@@ -50,10 +50,11 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 				msg.Ack()
 				var userTxn model.UserTransaction
 				err := json.Unmarshal(msg.Data, &userTxn)
+				zap.S().Infof("%s", msg.Data)
 				if err != nil {
 					zap.S().Errorf("%v", err)
 				}
-				zap.S().Infof("TransactionId: %s", userTxn.TransactionID)
+				zap.S().Infof("TransactionId: %d, Amount: %s, Status: %s", userTxn.TransactionID, userTxn.Amount.String(), userTxn.Status)
 				time.Sleep(3 * time.Second)
 			}
 			zap.S().Info("done processing messages from this batch")
