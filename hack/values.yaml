@@ -1,0 +1,26 @@
+nats:
+  jetstream:
+    enabled: true
+
+    fileStorage:
+      enabled: true
+      existingClaim: jetstream-pvc
+      claimStorageSize: 1Gi
+
+auth:
+  enabled: true
+  basic:
+    accounts:
+      demo:
+        jetstream: enabled        
+        users:
+        - nkey: UB6WFVVI6BKTAHT5XGS55BONYOE3TDF47ZD7F75YVPABRXJ7XHWZKX2W
+          permission:
+            publish: 
+            - "USER_TXN.maker"
+            - "$JS.>"
+            subscribe: 
+            - "USER_TXN.maker"
+            - "_INBOX.>"
+        - nkey: UD736QEIGXPHB5CLR4UAPCOEXET6WIKDYWELPIFHJJDJRNKH3SDHZTLT
+

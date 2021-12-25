@@ -17,7 +17,12 @@ type Consumer struct {
 }
 
 func NewConsumer(natsInfo *infra.NatsInfo) *Consumer {
-	nc, _ := nats.Connect("localhost:32422")
+	opt, err := nats.NkeyOptionFromSeed("hack/seed.txt")
+	if err != nil {
+		zap.S().Fatalf("unable to get nkey seed %v", err)
+	}
+
+	nc, _ := nats.Connect("localhost:32422", opt)
 	js, err := nc.JetStream()
 	if err != nil {
 		zap.S().Errorf("%v", err)
@@ -39,9 +44,12 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			return
 		default:
 		}
-		msgs, err := sub.Fetch(1, nats.Context(ctx))
+		msgs, err := sub.Fetch(100, nats.Context(ctx))
 		if err != nil {
-			if !errors.Is(err, nats.ErrContextAndTimeout) && !errors.Is(err, context.DeadlineExceeded) && ctx.Err() != context.Canceled {
+			if !errors.Is(err, nats.ErrContextAndTimeout) &&
+				!errors.Is(err, context.DeadlineExceeded) &&
+				!errors.Is(err, nats.ErrBadSubscription) &&
+				ctx.Err() != context.Canceled {
 				zap.S().Errorf("%v", err)
 			}
 

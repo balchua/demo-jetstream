@@ -10,7 +10,17 @@ type UserTransactionPublisher struct {
 }
 
 func NewTransactionPublisher() *UserTransactionPublisher {
-	nc, _ := nats.Connect("localhost:32422")
+	opt, err := nats.NkeyOptionFromSeed("hack/seed.txt")
+
+	if err != nil {
+		zap.S().Fatalf("unable to get nkey seed %v", err)
+	}
+
+	nc, err := nats.Connect("localhost:32422", opt)
+	if err != nil {
+		zap.S().Fatalf("unable to connect to nats server %v", err)
+	}
+
 	js, err := nc.JetStream()
 	if err != nil {
 		zap.S().Errorf("%v", err)

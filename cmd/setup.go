@@ -36,7 +36,13 @@ to quickly create a Cobra application.`,
 		var err error
 		var nc *nats.Conn
 		var js nats.JetStreamContext
-		nc, err = nats.Connect("localhost:32422")
+		opt, err := nats.NkeyOptionFromSeed("hack/sys-seed.txt")
+
+		if err != nil {
+			zap.S().Fatalf("unable to get nkey seed %v", err)
+		}
+
+		nc, err = nats.Connect("localhost:32422", opt)
 
 		if err != nil {
 			zap.S().Fatalf("unable to connect to nats %v", err)

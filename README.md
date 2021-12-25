@@ -35,10 +35,11 @@ Clone this project
   
 ```shell
 kubectl apply -f hack/jetstream-pvc.yaml
-helm install --namespace nats bnats nats/nats --set nats.jetstream.enabled=true \
-  --set nats.jetstream.fileStorage.enabled=true --set nats.jetstream.fileStorage.existingClaim=jetstream-pvc \
-  --set nats.jetstream.fileStorage.claimStorageSize=1Gi
+helm upgrade --install --namespace nats bnats nats/nats -f hack/values.yaml
 ```
+
+Check out the [`values.yaml`](hack/values.yaml) in the hack directory.
+
 The above command starts a NATS server with Jetstream default values.
 
 ### Manually create the Stream and Consumers
@@ -117,6 +118,40 @@ This will publish 10 messages to the stream on subject `USER_TXN.maker`
 ./demo-jetstream publish
 ```
 
+## Generate Account and authorization using nkeys
+
+Download the nk tools
+
+```shell
+go install github.com/nats-io/nkeys/nk
+```
+
+Generate the keys
+
+```shell
+nk -gen user -pubout
+SUAJSNDKKS4SLYV4BWYIF3RHP72PCF7LAXI6SIUIWLZW72DEBGFY6CCSAI
+UB6WFVVI6BKTAHT5XGS55BONYOE3TDF47ZD7F75YVPABRXJ7XHWZKX2W
+```
+
+In the output above 
+
+`Seed` (private key) - `SUAJSNDKKS4SLYV4BWYIF3RHP72PCF7LAXI6SIUIWLZW72DEBGFY6CCSAI`
+`User` (public key) - `UB6WFVVI6BKTAHT5XGS55BONYOE3TDF47ZD7F75YVPABRXJ7XHWZKX2W`
+
+
+These generated nkeys are stored in the [`seed.txt`](hack/seed.txt), this is used in the code.
+
+```shell
+nk -gen user -pubout
+SUAMKIAMDUJITCXXXTL2XMHTVT3OBSA3KWLIZQ3NFBA4FMD3SQ75GJEF6Y
+UD736QEIGXPHB5CLR4UAPCOEXET6WIKDYWELPIFHJJDJRNKH3SDHZTLT
+```
+
+Keep the `SUAMKIAMDUJITCXXXTL2XMHTVT3OBSA3KWLIZQ3NFBA4FMD3SQ75GJEF6Y` into [`sys-seed.txt`](hack/sys-seed.txt) and add the user key to the values.yaml
+
 ## Create Postgres DB
 
 TODO
+
+
