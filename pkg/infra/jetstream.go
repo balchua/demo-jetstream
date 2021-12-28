@@ -37,7 +37,6 @@ func NewJetStream(seedFile string, natsUri string) (*JetStreamInfo, error) {
 		nc: nc,
 		js: js,
 	}, nil
-
 }
 
 func (jetstream *JetStreamInfo) CreateStream(streamName string, streamOpts ...jsm.StreamOption) error {

@@ -16,42 +16,46 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/balchua/demo-jetstream/pkg/publisher"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+)
+
+var (
+	pubStreamName  string
+	messageSubject string
+	maxCount       int
+	pubMessage     string
 )
 
 // publishCmd represents the publish command
 var publishCmd = &cobra.Command{
 	Use:   "publish",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: publish,
+	Short: "publish user transaction to NATS jetstream",
+	Long:  `Publish user transaction message to NATS jetstream`,
+	Run:   publish,
 }
 
 func init() {
 	rootCmd.AddCommand(publishCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// publishCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// publishCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	publishCmd.Flags().StringVarP(&pubStreamName, "streamName", "s", "USER_TXN", "specify the stream name to publish message to")
+	publishCmd.Flags().StringVarP(&messageSubject, "messageSubject", "b", "USER_TXN.>*", "specify the subject of the message to publish")
+	publishCmd.Flags().StringVarP(&pubMessage, "message", "m", "", "the message to send to the stream")
+	publishCmd.Flags().IntVarP(&maxCount, "maxCount", "c", 10, "the message to send to the stream")
 }
 
 func publish(cmd *cobra.Command, args []string) {
 
-	pub := publisher.NewTransactionPublisher()
-	for i := 0; i < 5; i++ {
-		pub.Publish("{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}", "USER_TXN.maker")
+	n, err := infra.NewNats(appConfig.P.SeedPath, appConfig.P.NatsUri)
+	if err != nil {
+		zap.S().Fatalf("%v", err)
+	}
+
+	pub := publisher.NewTransactionPublisher(n)
+	for i := 0; i < maxCount; i++ {
+		//pub.Publish("{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}", "USER_TXN.maker")
+		pub.SendMessage(pubMessage, messageSubject)
 	}
 
 }

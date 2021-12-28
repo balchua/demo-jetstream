@@ -7,19 +7,20 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/balchua/demo-jetstream/pkg/config"
 	"go.uber.org/zap"
 )
 
-func Monitor(host string, port int, scheme string) {
+func Monitor(monitorConfig config.Monitor) {
 	for {
-		doMonitor(host, port, scheme)
+		doMonitor(monitorConfig)
 	}
 
 }
 
-func doMonitor(host string, port int, scheme string) {
+func doMonitor(mc config.Monitor) {
 	c := http.Client{Timeout: time.Duration(1) * time.Second}
-	uri := fmt.Sprintf("%s://%s:%d/jsz?consumers=true", scheme, host, port)
+	uri := fmt.Sprintf("%s://%s:%d/jsz?consumers=true", mc.Scheme, mc.Host, mc.Port)
 	resp, err := c.Get(uri)
 	if err != nil {
 		zap.S().Errorf("%v", err)
@@ -30,6 +31,7 @@ func doMonitor(host string, port int, scheme string) {
 	jsz := &JSInfo{}
 	json.Unmarshal(body, jsz)
 	checkPendingMessages(jsz)
+	time.Sleep(time.Duration(mc.PollSeconds) * time.Second)
 }
 
 func checkPendingMessages(jsz *JSInfo) {
@@ -50,6 +52,6 @@ func checkPendingMessages(jsz *JSInfo) {
 				}
 			}
 		}
-		time.Sleep(1000 * time.Millisecond)
+
 	}
 }

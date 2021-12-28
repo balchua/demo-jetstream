@@ -12,10 +12,11 @@ Publisher will publish the following a `UserTransaction` event.
 
 ```json
 
-"userTransaction": {
-    "userId": "123456789",
-    "transactionMode": "buy",
-    "amount": 123.456,
+{
+    "TransactionID":1,
+    "UserID":1,
+    "Status": "OK",
+    "Amount": 456.89
 }
 ```
 
@@ -111,12 +112,6 @@ demo-jetstream setup
 
 This will setup the STREAM `USER_TXN` and the CONSUMER `GRP_MAKER`
 
-## Publish message
-
-This will publish 10 messages to the stream on subject `USER_TXN.maker`
-```shell
-./demo-jetstream publish
-```
 
 ## Generate Account and authorization using nkeys
 
@@ -149,6 +144,14 @@ UD736QEIGXPHB5CLR4UAPCOEXET6WIKDYWELPIFHJJDJRNKH3SDHZTLT
 ```
 
 Keep the `SUAMKIAMDUJITCXXXTL2XMHTVT3OBSA3KWLIZQ3NFBA4FMD3SQ75GJEF6Y` into [`sys-seed.txt`](hack/sys-seed.txt) and add the user key to the values.yaml
+
+
+## Publish message
+
+This will publish 10 messages to the stream on subject `USER_TXN.maker`
+```shell
+./demo-jetstream publish --config "hack/config.yaml" --streamName "USER_TXN" --messageSubject "USER_TXN.maker" --maxCount "10000" --message "{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}"
+```
 
 ## Create Postgres DB
 

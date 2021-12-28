@@ -1,3 +1,15 @@
 infra:
   natsUri: "localhost:32422"
   seedPath: "hack/sys-seed.txt"
+publish:
+  natsUri: "localhost:32422"
+  seedPath: "hack/sys-seed.txt"
+monitor:
+  scheme: "http"
+  host: "localhost"
+  port: 32822
+  account: "demo"
+  consumerName: "USER_TXN.maker"
+  streamName: "USER_TXN"
+  pollSeconds: 1
+
