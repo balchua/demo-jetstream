@@ -1,0 +1,3 @@
+infra:
+  natsUri: "localhost:32422"
+  seedPath: "hack/sys-seed.txt"
