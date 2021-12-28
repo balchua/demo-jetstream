@@ -7,7 +7,8 @@ import (
 
 	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/balchua/demo-jetstream/pkg/model"
-	"github.com/nats-io/nats.go"
+
+	//"github.com/nats-io/nats.go"
 
 	"go.uber.org/zap"
 )
@@ -37,7 +38,7 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			return
 		default:
 		}
-		msgs, err := c.natsInfo.Fetch(100, nats.Context(ctx))
+		msgs, err := c.natsInfo.Fetch(100, ctx)
 
 		if err != nil {
 			zap.S().Fatalf("unable to consume message %v", err)
