@@ -21,6 +21,7 @@ import (
 	"os/signal"
 
 	"github.com/balchua/demo-jetstream/pkg/consumer"
+	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/sys/unix"
@@ -29,37 +30,34 @@ import (
 // consumeCmd represents the consume command
 var consumeCmd = &cobra.Command{
 	Use:   "consume",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: consume,
+	Short: "Consumes a message from the Consumer",
+	Long:  `Consumes a message from a given stream/consumer`,
+	Run:   consume,
 }
+
+var (
+	subscriberSubject     string
+	subscribeConsumerName string
+)
 
 func init() {
 	rootCmd.AddCommand(consumeCmd)
+	consumeCmd.Flags().StringVarP(&subscribeConsumerName, "consumerName", "n", "GRP_MAKER", "The durable name of the consumer.")
+	consumeCmd.Flags().StringVarP(&subscriberSubject, "subscriberSubject", "s", "USER_TXN.maker", "The subject where the subscriber is subscribed to.")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// consumeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// consumeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func consume(cmd *cobra.Command, args []string) {
+	n, err := infra.NewNats(appConfig.S.SeedPath, appConfig.S.NatsUri)
+	if err != nil {
+		zap.S().Fatalf("%v", err)
+	}
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	con := consumer.NewConsumer(nil)
+	con := consumer.NewConsumer(n)
 
 	worker := make(chan bool)
-	go con.Listen(ctx, worker, "USER_TXN.maker", "GRP_MAKER")
+	go con.Listen(ctx, worker, subscriberSubject, subscribeConsumerName, appConfig.S.SleepTimeInMillis)
 	ch := make(chan os.Signal)
 	signal.Notify(ch, unix.SIGPWR)
 	signal.Notify(ch, unix.SIGINT)

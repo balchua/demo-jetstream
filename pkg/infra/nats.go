@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"context"
 	"errors"
 
 	"github.com/nats-io/nats.go"
@@ -8,8 +9,9 @@ import (
 )
 
 type NatsInfo struct {
-	nc *nats.Conn
-	js nats.JetStreamContext
+	nc  *nats.Conn
+	js  nats.JetStreamContext
+	sub *nats.Subscription
 }
 
 func NewNats(seedFile string, natsUri string) (*NatsInfo, error) {
@@ -58,4 +60,37 @@ func printHeaders(headers nats.Header) {
 	for key, element := range headers {
 		zap.S().Debugf("header key [%s], contents [%v]", key, element)
 	}
+}
+
+func (n *NatsInfo) Subscribe(subject, consumerName string) error {
+	var err error
+	n.sub, err = n.js.PullSubscribe(subject, consumerName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (n *NatsInfo) Fetch(messageCount int, ctx context.Context) ([]*NatsMessage, error) {
+	var natsMessages []*NatsMessage
+	msgs, err := n.sub.Fetch(messageCount, nats.Context(ctx))
+
+	if err != nil {
+		if !errors.Is(err, nats.ErrContextAndTimeout) &&
+			!errors.Is(err, context.DeadlineExceeded) &&
+			!errors.Is(err, nats.ErrBadSubscription) &&
+			ctx.Err() != context.Canceled {
+			zap.S().Errorf("%v", err)
+			return nil, err
+		}
+
+	}
+	for _, msg := range msgs {
+		natsMsg := &NatsMessage{
+			msg: msg,
+		}
+		natsMessages = append(natsMessages, natsMsg)
+	}
+	return natsMessages, nil
+
 }

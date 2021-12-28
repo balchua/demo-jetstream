@@ -145,14 +145,58 @@ UD736QEIGXPHB5CLR4UAPCOEXET6WIKDYWELPIFHJJDJRNKH3SDHZTLT
 
 Keep the `SUAMKIAMDUJITCXXXTL2XMHTVT3OBSA3KWLIZQ3NFBA4FMD3SQ75GJEF6Y` into [`sys-seed.txt`](hack/sys-seed.txt) and add the user key to the values.yaml
 
+## Application configuration
+In this demo, the sample application configuration is in [config.yaml](hack/config.yaml)
+
+```yaml
+infra:
+  natsUri: "localhost:32422"
+  seedPath: "hack/sys-seed.txt"
+publish:
+  natsUri: "localhost:32422"
+  seedPath: "hack/sys-seed.txt"
+monitor:
+  scheme: "http"
+  host: "localhost"
+  port: 32822
+  account: "demo"
+  consumerName: "USER_TXN.maker"
+  streamName: "USER_TXN"
+  pollSeconds: 1
+```
 
 ## Publish message
 
 This will publish 10 messages to the stream on subject `USER_TXN.maker`
 ```shell
-./demo-jetstream publish --config "hack/config.yaml" --streamName "USER_TXN" --messageSubject "USER_TXN.maker" --maxCount "10000" --message "{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}"
+./demo-jetstream publish --config "hack/config.yaml" --streamName "USER_TXN" --messageSubject "USER_TXN.maker" --maxCount "10" --message "{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}"
 ```
 
+## Monitor message lag
+
+Using the configuration [here](#application-configuration).
+
+The monitoring will check the message lag of the Consumer `USER_TXN.maker` in the Stream `USER_TXN` using the account `demo`
+
+```shell
+./demo-jetstream monitor --config "hack/config.yaml"
+...
+2021-12-28T17:54:30.352+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+2021-12-28T17:54:31.354+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+2021-12-28T17:54:32.357+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+2021-12-28T17:54:33.360+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+2021-12-28T17:54:34.365+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+2021-12-28T17:54:35.368+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+2021-12-28T17:54:36.371+0800	INFO	monitoring/monitor.go:47	total lag is 10100
+...
+```
+
+## Consume message
+
+```shell
+
+./demo-jetstream consume --config "hack/config.yaml" --consumerName "GRP_MAKER" --subscriberSubject "USER_TXN.maker"
+```
 ## Create Postgres DB
 
 TODO

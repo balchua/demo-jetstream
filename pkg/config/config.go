@@ -1,9 +1,10 @@
 package config
 
 type AppConfiguration struct {
-	I Infra     `mapstructure:"infra"`
-	P Publisher `mapstructure:"publish"`
-	M Monitor   `mapstructure:"monitor"`
+	I Infra      `mapstructure:"infra"`
+	P Publisher  `mapstructure:"publish"`
+	M Monitor    `mapstructure:"monitor"`
+	S Subscriber `mapstructure:"subscribe"`
 }
 
 type Infra struct {
@@ -14,6 +15,12 @@ type Infra struct {
 type Publisher struct {
 	SeedPath string `mapstructure:"seedPath"`
 	NatsUri  string `mapstructure:"natsUri"`
+}
+
+type Subscriber struct {
+	SeedPath          string `mapstructure:"seedPath"`
+	NatsUri           string `mapstructure:"natsUri"`
+	SleepTimeInMillis int    `mapstructure:"sleepTimeInMillis"`
 }
 
 type Monitor struct {
