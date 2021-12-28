@@ -1,4 +1,4 @@
-# Playing with MATS Jetstream
+# Playing with NATS Jetstream
 
 This project demonstrate the use of NATS Jetstream.  NATS Jetstream is the persistent storage engine built into core NATS server.
 

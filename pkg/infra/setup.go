@@ -7,44 +7,40 @@ import (
 	"go.uber.org/zap"
 )
 
-func SetupInfra(natsInfo *NatsInfo, streamSubjects string, streamName string) error {
+type InfraSetup struct {
+	jetstream       JetStream
+	streamName      string
+	streamSubjects  string
+	consumerName    string
+	consumerSubject string
+	streamMaxAge    time.Duration
+}
 
-	consumerName := "GRP_MAKER"
-	consumerSubject := "USER_TXN.maker"
+func NewInfraSetup(jetstream JetStream, streamName, streamSubjects, consumerName, consumerSubject string, maxAge time.Duration) *InfraSetup {
+
 	zap.S().Infof("setting up stream [%s] stream subject [%s]", streamName, streamSubjects)
-	if err := setupStream(natsInfo, streamSubjects, streamName); err != nil {
-		return err
-	}
-
 	zap.S().Infof("setting up consumer name [%s] on subject [%s]", consumerName, consumerSubject)
-	if err := setupConsumer(natsInfo, streamName, consumerName, consumerSubject); err != nil {
+	return &InfraSetup{
+		jetstream:       jetstream,
+		streamName:      streamName,
+		streamSubjects:  streamSubjects,
+		consumerName:    consumerName,
+		consumerSubject: consumerSubject,
+		streamMaxAge:    maxAge,
+	}
+}
+func (i *InfraSetup) Setup() error {
+
+	if err := i.jetstream.CreateStream(i.streamName, jsm.Subjects(i.streamSubjects), jsm.MaxAge(i.streamMaxAge), jsm.FileStorage()); err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func setupStream(natsInfo *NatsInfo, streamSubjects string, streamName string) error {
-	mgr, _ := jsm.New(natsInfo.Nc)
-	_, err := mgr.NewStream(streamName, jsm.Subjects(streamSubjects), jsm.MaxAge(24*365*time.Hour), jsm.FileStorage())
-	// Check if the stream already exists; if not, create it.
-	if err != nil {
-		zap.S().Errorf("%v", err)
-	}
-	return nil
-
-}
-
-func setupConsumer(natsInfo *NatsInfo, streamName string, consumerName string, filterSubject string) error {
-	mgr, _ := jsm.New(natsInfo.Nc)
-	_, err := mgr.NewConsumer(streamName, jsm.DurableName(consumerName),
-		jsm.FilterStreamBySubject(filterSubject),
+	if err := i.jetstream.CreateConsumer(i.streamName, jsm.DurableName(i.consumerName),
+		jsm.FilterStreamBySubject(i.consumerSubject),
 		jsm.AcknowledgeExplicit(),
 		jsm.DeliverAllAvailable(),
-		jsm.ReplayAsReceived())
-
-	if err != nil {
-		zap.S().Errorf("%v", err)
+		jsm.ReplayAsReceived()); err != nil {
+		return err
 	}
 
 	return nil

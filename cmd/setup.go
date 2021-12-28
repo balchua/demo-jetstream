@@ -16,8 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"time"
+
 	"github.com/balchua/demo-jetstream/pkg/infra"
-	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -25,57 +26,39 @@ import (
 // setupCmd represents the setup command
 var setupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		var nc *nats.Conn
-		var js nats.JetStreamContext
-		opt, err := nats.NkeyOptionFromSeed("hack/sys-seed.txt")
-
-		if err != nil {
-			zap.S().Fatalf("unable to get nkey seed %v", err)
-		}
-
-		nc, err = nats.Connect("localhost:32422", opt)
-
-		if err != nil {
-			zap.S().Fatalf("unable to connect to nats %v", err)
-		}
-		js, err = nc.JetStream()
-
-		if err != nil {
-			zap.S().Fatalf("unable to create stream in %v", err)
-		}
-		ni := &infra.NatsInfo{
-			Nc: nc,
-			Js: js,
-		}
-
-		streamName := "USER_TXN"
-		streamSubjects := "USER_TXN.*"
-		err = infra.SetupInfra(ni, streamSubjects, streamName)
-		if err != nil {
-			zap.S().Errorf("unable to create stream [%s] with subjects [%s] %v", streamName, streamSubjects, err)
-		}
-	},
+	Short: "Sets up the necessary Jetstream stream and consumer",
+	Long:  `This command sets up the Stream and Consumers needed by the application, uses direct Jetstream manager`,
+	Run:   setupInfra,
 }
+
+var (
+	streamName      string
+	consumerName    string
+	streamSubjects  string
+	consumerSubject string
+)
+
+const SECONDS_IN_A_YEAR = 24 * 365 * time.Hour
 
 func init() {
 	rootCmd.AddCommand(setupCmd)
+	setupCmd.Flags().StringVarP(&streamName, "streamName", "s", "USER_TXN", "specify the stream name to use")
+	setupCmd.Flags().StringVarP(&streamSubjects, "streamSubjects", "b", "USER_TXN.>*", "specify the subject the stream is related to, example USER_TXN.>")
+	setupCmd.Flags().StringVarP(&consumerName, "consumerName", "c", "GRP_MAKER", "The durable name of the consumer.")
+	setupCmd.Flags().StringVarP(&consumerSubject, "consumerSubject", "j", "USER_TXN.maker", "The subject where the consumer is subscribed to.")
+}
 
-	// Here you will define your flags and configuration settings.
+func setupInfra(cmd *cobra.Command, args []string) {
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// setupCmd.PersistentFlags().String("foo", "", "A help for foo")
+	jsi, err := infra.NewJetStream(appConfig.I.SeedPath, appConfig.I.NatsUri)
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// setupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	if err != nil {
+		zap.S().Fatalf("setup failure %v", err)
+	}
+
+	i := infra.NewInfraSetup(jsi, streamName, streamSubjects, consumerName, consumerSubject, SECONDS_IN_A_YEAR)
+	if err := i.Setup(); err != nil {
+		zap.S().Fatalf("%v", err)
+	}
+
 }

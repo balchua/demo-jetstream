@@ -16,9 +16,9 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/balchua/demo-jetstream/pkg/config"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -31,17 +31,14 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "demo-jetstream",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "This is a demo application showcasing Nats Jetstream",
+	Long:  `Demo application to showcase Nats Jetstream`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
 }
+
+var appConfig *config.AppConfiguration
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -88,6 +85,13 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		zap.S().Debugf("Using config file: %s", viper.ConfigFileUsed())
 	}
+
+	appConfig = &config.AppConfiguration{}
+
+	if err := viper.Unmarshal(appConfig); err != nil {
+		zap.S().Fatalf("%v", err)
+	}
+
 }
