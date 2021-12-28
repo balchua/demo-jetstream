@@ -55,7 +55,7 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			zap.S().Infof("TransactionId: %d, Amount: %s, Status: %s", userTxn.TransactionID, userTxn.Amount.String(), userTxn.Status)
 			time.Sleep(time.Duration(sleepTimeInMillis) * time.Millisecond)
 		}
-		zap.S().Info("done processing messages from this batch")
+		zap.S().Debug("done processing messages from this batch")
 
 	}
 }
