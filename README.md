@@ -60,10 +60,16 @@ Clone this project
 Refer to the [document](docs/manual_create.md)
 
 
-## Build
+## Build and Test
 
 ```shell
 go build.
+```
+
+```shell
+
+go test -p=1 -coverpkg=./... -coverprofile=coverage.txt  ./...
+go tool cover -html=coverage.txt
 ```
 
 ## Auto create the STREAM and CONSUMERS

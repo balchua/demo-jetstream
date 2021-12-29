@@ -8,7 +8,6 @@ import (
 )
 
 type Nats interface {
-	//Publish(msg *nats.Msg) error
 	Publish(msg *NatsMessage) error
 	Subscribe(subject, consumerName string) error
 	Fetch(messageCount int, ctx context.Context) ([]*NatsMessage, error)
@@ -33,14 +32,23 @@ func NewNatsMessage(subject string) *NatsMessage {
 }
 
 func (m *NatsMessage) GetHeaders() map[string][]string {
+	if m.msg == nil {
+		return nil
+	}
 	return m.msg.Header
 }
 
 func (m *NatsMessage) GetHeader(key string) string {
+	if m.msg == nil {
+		return ""
+	}
 	return m.msg.Header.Get(key)
 }
 
 func (m *NatsMessage) GetBody() []byte {
+	if m.msg == nil {
+		return nil
+	}
 	return m.msg.Data
 }
 
