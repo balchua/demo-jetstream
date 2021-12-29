@@ -8,7 +8,8 @@ import (
 )
 
 type Nats interface {
-	Publish(msg *nats.Msg) error
+	//Publish(msg *nats.Msg) error
+	Publish(msg *NatsMessage) error
 	Subscribe(subject, consumerName string) error
 	Fetch(messageCount int, ctx context.Context) ([]*NatsMessage, error)
 }
@@ -22,9 +23,12 @@ type NatsMessage struct {
 	msg *nats.Msg
 }
 
-func NewNatsMessage(headers map[string][]string, body []byte) {
+func NewNatsMessage(subject string) *NatsMessage {
 
-	//TODO
+	msg := nats.NewMsg(subject)
+	return &NatsMessage{
+		msg: msg,
+	}
 
 }
 
@@ -40,10 +44,22 @@ func (m *NatsMessage) GetBody() []byte {
 	return m.msg.Data
 }
 
+func (m *NatsMessage) AddHeader(key string, value string) {
+	m.msg.Header.Add(key, value)
+}
+
+func (m *NatsMessage) SetBody(body []byte) {
+	m.msg.Data = body
+}
+
 func (m *NatsMessage) Ack() {
 	m.msg.Ack()
 }
 
 func (m *NatsMessage) Nack() {
 	m.msg.Nak()
+}
+
+func (m *NatsMessage) GetUnderlyingNatsMessage() *nats.Msg {
+	return m.msg
 }

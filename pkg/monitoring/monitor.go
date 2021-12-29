@@ -30,18 +30,18 @@ func doMonitor(mc config.Monitor) {
 	body, err := ioutil.ReadAll(resp.Body)
 	jsz := &JSInfo{}
 	json.Unmarshal(body, jsz)
-	checkPendingMessages(jsz)
+	checkPendingMessages(jsz, mc)
 	time.Sleep(time.Duration(mc.PollSeconds) * time.Second)
 }
 
-func checkPendingMessages(jsz *JSInfo) {
+func checkPendingMessages(jsz *JSInfo, mc config.Monitor) {
 
 	for _, d := range jsz.AccountDetails {
-		if d.Name == "demo" {
+		if d.Name == mc.Account {
 			if d.Streams != nil {
 				for _, s := range d.Streams {
 					for _, cons := range s.Consumers {
-						if cons.Stream == "USER_TXN" && cons.Name == "GRP_MAKER" {
+						if cons.Stream == mc.StreamName && cons.Name == mc.ConsumerName {
 							totalLag := cons.NumPending + cons.NumAckPending
 							if totalLag > 0 {
 								zap.S().Infof("total lag is %d", totalLag)

@@ -8,13 +8,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type NatsInfo struct {
+type NatsImpl struct {
 	nc  *nats.Conn
 	js  nats.JetStreamContext
 	sub *nats.Subscription
 }
 
-func NewNats(seedFile string, natsUri string) (*NatsInfo, error) {
+func NewNats(seedFile string, natsUri string) (*NatsImpl, error) {
 	opt, err := nats.NkeyOptionFromSeed("hack/seed.txt")
 
 	if err != nil {
@@ -31,7 +31,7 @@ func NewNats(seedFile string, natsUri string) (*NatsInfo, error) {
 		zap.S().Fatalf("unable to get jetstream context %v", err)
 	}
 
-	natsInfo := &NatsInfo{
+	natsInfo := &NatsImpl{
 		nc: nc,
 		js: js,
 	}
@@ -39,15 +39,15 @@ func NewNats(seedFile string, natsUri string) (*NatsInfo, error) {
 	return natsInfo, nil
 }
 
-func (n *NatsInfo) Publish(msg *nats.Msg) error {
+func (n *NatsImpl) Publish(msg *NatsMessage) error {
 
 	if msg == nil {
 		return errors.New("invalid message")
 	}
 
-	printHeaders(msg.Header)
+	printHeaders(msg.GetHeaders())
 
-	_, err := n.js.PublishMsg(msg)
+	_, err := n.js.PublishMsg(msg.GetUnderlyingNatsMessage())
 
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func printHeaders(headers nats.Header) {
 	}
 }
 
-func (n *NatsInfo) Subscribe(subject, consumerName string) error {
+func (n *NatsImpl) Subscribe(subject, consumerName string) error {
 	var err error
 	n.sub, err = n.js.PullSubscribe(subject, consumerName)
 	if err != nil {
@@ -71,7 +71,7 @@ func (n *NatsInfo) Subscribe(subject, consumerName string) error {
 	return nil
 }
 
-func (n *NatsInfo) Fetch(messageCount int, ctx context.Context) ([]*NatsMessage, error) {
+func (n *NatsImpl) Fetch(messageCount int, ctx context.Context) ([]*NatsMessage, error) {
 	var natsMessages []*NatsMessage
 	msgs, err := n.sub.Fetch(messageCount, nats.Context(ctx))
 

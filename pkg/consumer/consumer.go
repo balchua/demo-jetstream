@@ -8,8 +8,6 @@ import (
 	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/balchua/demo-jetstream/pkg/model"
 
-	//"github.com/nats-io/nats.go"
-
 	"go.uber.org/zap"
 )
 

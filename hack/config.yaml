@@ -7,13 +7,13 @@ publish:
 subscribe:
   natsUri: "localhost:32422"
   seedPath: "hack/sys-seed.txt"
-  sleepTimeInMillis: 10
+  sleepTimeInMillis: 3000
 monitor:
   scheme: "http"
   host: "localhost"
   port: 32822
   account: "demo"
-  consumerName: "USER_TXN.maker"
+  consumerName: "GRP_MAKER"
   streamName: "USER_TXN"
   pollSeconds: 1
 

@@ -28,75 +28,39 @@ Clone this project
 
 ## Pre-requisites
 
+* Kubernetes cluster (single node is enough), example MicroK8s.  
+
+  ```shell
+  sudo snap install microk8s --channel 1.23/stable --classic
+  ```
+
+* Default Persistent Volume
+  
+  ```shell
+  microk8s enable storage`
+  ```
+
 * Install NATS using helm with Jetstream enabled.  
  
-[Documentation](https://docs.nats.io/running-a-nats-service/introduction/running/nats-kubernetes/helm-charts)
-[Charts](https://github.com/nats-io/k8s/tree/main/helm/charts/nats)
+  [Nats Charts Documentation](https://docs.nats.io/running-a-nats-service/introduction/running/nats-kubernetes/helm-charts)
+
+  [Nats Charts](https://github.com/nats-io/k8s/tree/main/helm/charts/nats)
 
   
-```shell
-kubectl apply -f hack/jetstream-pvc.yaml
-helm upgrade --install --namespace nats bnats nats/nats -f hack/values.yaml
-```
+  ```shell
+  kubectl apply -f hack/jetstream-pvc.yaml
+  helm upgrade --install --namespace nats bnats nats/nats -f hack/values.yaml
+  ```
 
-Check out the [`values.yaml`](hack/values.yaml) in the hack directory.
+  Check out the [`values.yaml`](hack/values.yaml) in the hack directory.
 
-The above command starts a NATS server with Jetstream default values.
 
-### Manually create the Stream and Consumers
+## Manually create the Stream and Consumers
 
-Follow the Jetstream walkthrough - https://docs.nats.io/nats-concepts/jetstream/js_walkthrough
+Refer to the [document](docs/manual_create.md)
 
-_Connect to the bnats box_
 
-```shell
-kubectl exec -n nats -it deployment/bnats-box -- /bin/sh -l
-```
-
-_Create the stream_
-
-```shell
-nats stream add USER_TXN --subjects "USER_TXN.*" --ack --max-msgs=-1 --max-bytes=-1 --max-age=1y --storage file --retention limits --max-msg-size=-1 --discard=old --max-msgs-per-subject=-1 --dupe-window=1d --allow-rollup --no-deny-delete --no-deny-purge --replicas=1
-```
-
-_Create `MAKER` consumer_
-
-```shell
-nats consumer add USER_TXN GRP_MAKER --filter USER_TXN.maker --ack explicit --pull --deliver all --max-deliver=-1 --replay=instant --max-pending=100 --no-headers-only 
-```
-
-_Create `VALIDATOR` consumer_
-
-```shell
-nats consumer add USER_TXN GRP_VALIDATOR --filter USER_TXN.validator --ack explicit --pull --deliver all --max-deliver=-1 --replay=instant --max-pending=100 --no-headers-only 
-```
-
-_Publish messages to the stream for maker_
-
-```shell
-nats pub USER_TXN.maker --count=50 --sleep 1s "publication #{{Count}} @ {{TimeStamp}}"
-```
-
-_Publish messages to the stream for validator_
-
-Must use the subject to publish
-
-```shell
-nats pub USER_TXN.validator --count=50 --sleep 1s "publication #{{Count}} @ {{TimeStamp}}"
-```
-
-_View stream contents_
-
-```shell
-nats stream view txn_stream
-```
-
-_Get messages from stream for maker_
-
-```shell
-nats consumer next USER_TXN GRP_MAKER --count 50
-```
-## Building
+## Build
 
 ```shell
 go build.
@@ -104,24 +68,35 @@ go build.
 
 ## Auto create the STREAM and CONSUMERS
 
-This project will automatically create the `STREAMS` and `CONSUMERS`
+This project will automatically create the `STREAMS` and `CONSUMERS`, when u start the application like below.
 
 ```shell
-demo-jetstream setup
+demo-jetstream setup  --config "hack/config.yaml" \
+  --streamName "USER_TXN" --streamSubjects "USER_TXN.>" \
+  --consumerName "GRP_MAKER" \
+  --consumerSubject "USER_TXN.maker" 
 ```
 
-This will setup the STREAM `USER_TXN` and the CONSUMER `GRP_MAKER`
+This will setup the STREAM `USER_TXN` and the CONSUMER `GRP_MAKER`, together with the corresponding stream and consumer subjects.
+
 
 
 ## Generate Account and authorization using nkeys
 
-Download the nk tools
+To support multi-tenant NATS, one can setup accounts as well as using the `nkeys` to secure the NATS cluster.  
+
+**It should be noted that the [`values.yaml`](hack/values.yaml) presented above already set the necessary nkeys and users using the generated values below.**
+
+Below are ways on how to generate the nkeys.  More information [from NATS documentation](https://docs.nats.io/running-a-nats-service/configuration/securing_nats/auth_intro/nkey_auth).
+
+
+### Download the nk tools
 
 ```shell
 go install github.com/nats-io/nkeys/nk
 ```
 
-Generate the keys
+### Generate the keys
 
 ```shell
 nk -gen user -pubout
@@ -129,7 +104,7 @@ SUAJSNDKKS4SLYV4BWYIF3RHP72PCF7LAXI6SIUIWLZW72DEBGFY6CCSAI
 UB6WFVVI6BKTAHT5XGS55BONYOE3TDF47ZD7F75YVPABRXJ7XHWZKX2W
 ```
 
-In the output above 
+From the output above 
 
 `Seed` (private key) - `SUAJSNDKKS4SLYV4BWYIF3RHP72PCF7LAXI6SIUIWLZW72DEBGFY6CCSAI`
 `User` (public key) - `UB6WFVVI6BKTAHT5XGS55BONYOE3TDF47ZD7F75YVPABRXJ7XHWZKX2W`
@@ -145,8 +120,30 @@ UD736QEIGXPHB5CLR4UAPCOEXET6WIKDYWELPIFHJJDJRNKH3SDHZTLT
 
 Keep the `SUAMKIAMDUJITCXXXTL2XMHTVT3OBSA3KWLIZQ3NFBA4FMD3SQ75GJEF6Y` into [`sys-seed.txt`](hack/sys-seed.txt) and add the user key to the values.yaml
 
+If you generate new keys, you must set them in the [values.yaml](hack/values.yaml) `auth` section.  See sample snippet below.  You must redeploy the NATS server.
+
+
+```yaml
+auth:
+  enabled: true
+  basic:
+    accounts:
+      demo:
+        jetstream: enabled        
+        users:
+        - nkey: UB6WFVVI6BKTAHT5XGS55BONYOE3TDF47ZD7F75YVPABRXJ7XHWZKX2W
+          permission:
+            publish: 
+            - "USER_TXN.maker"
+            - "$JS.>"
+            subscribe: 
+            - "USER_TXN.maker"
+            - "_INBOX.>"
+        - nkey: UD736QEIGXPHB5CLR4UAPCOEXET6WIKDYWELPIFHJJDJRNKH3SDHZTLT
+```
+
 ## Application configuration
-In this demo, the sample application configuration is in [config.yaml](hack/config.yaml)
+In this demo, the sample application configuration is defined in [config.yaml](hack/config.yaml).
 
 ```yaml
 infra:
@@ -155,24 +152,28 @@ infra:
 publish:
   natsUri: "localhost:32422"
   seedPath: "hack/sys-seed.txt"
+subscribe:
+  natsUri: "localhost:32422"
+  seedPath: "hack/sys-seed.txt"
+  sleepTimeInMillis: 10
 monitor:
   scheme: "http"
   host: "localhost"
   port: 32822
   account: "demo"
-  consumerName: "USER_TXN.maker"
+  consumerName: "GRP_MAKER"
   streamName: "USER_TXN"
   pollSeconds: 1
 ```
 
-## Publish message
+## Publishing message to NAT Jetstream stream `USER_TXN`
 
 This will publish 10 messages to the stream on subject `USER_TXN.maker`
 ```shell
 ./demo-jetstream publish --config "hack/config.yaml" --streamName "USER_TXN" --messageSubject "USER_TXN.maker" --maxCount "10" --message "{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}"
 ```
 
-## Monitor message lag
+## Monitoring message lag on Consumer
 
 Using the configuration [here](#application-configuration).
 

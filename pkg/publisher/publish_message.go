@@ -2,7 +2,6 @@ package publisher
 
 import (
 	"github.com/balchua/demo-jetstream/pkg/infra"
-	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 )
 
@@ -19,10 +18,10 @@ func NewTransactionPublisher(natsInfo infra.Nats) *UserTransactionPublisher {
 
 func (u *UserTransactionPublisher) SendMessage(message string, subject string) error {
 	zap.S().Infof("%s", message)
-	m := nats.NewMsg(subject)
+	m := infra.NewNatsMessage(subject)
+	m.AddHeader("CUSTOM_HEADER", "user-txn")
 
-	m.Header.Add("CUSTOM_HEADER", "user-txn")
-	m.Data = []byte(message)
+	m.SetBody([]byte(message))
 	err := u.natsInfo.Publish(m)
 	if err != nil {
 		return err
