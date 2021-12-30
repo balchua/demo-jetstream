@@ -67,8 +67,7 @@ go build.
 ```
 
 ```shell
-
-go test -v -p=1 -coverpkg=./... -coverprofile=coverage.txt  ./...
+go test -v -p=1 -coverpkg=./... -coverprofile=coverage.txt  ./pkg/...
 go tool cover -html=coverage.txt
 ```
 
