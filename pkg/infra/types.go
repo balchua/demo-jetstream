@@ -11,11 +11,14 @@ type Nats interface {
 	Publish(msg *NatsMessage) error
 	Subscribe(subject, consumerName string) error
 	Fetch(messageCount int, ctx context.Context) ([]*NatsMessage, error)
+	Close()
 }
 
 type JetStream interface {
 	CreateStream(streamName string, streamOpts ...jsm.StreamOption) error
 	CreateConsumer(streamName string, consumerOpts ...jsm.ConsumerOption) error
+	Close()
+	IsStreamAvailable(streamName string) (bool, error)
 }
 
 type NatsMessage struct {

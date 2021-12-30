@@ -63,3 +63,19 @@ func (jetstream *JetStreamInfo) CreateConsumer(streamName string, consumerOpts .
 
 	return nil
 }
+
+func (jetstream *JetStreamInfo) Close() {
+	jetstream.nc.Close()
+}
+
+func (jetstream *JetStreamInfo) IsStreamAvailable(streamName string) (bool, error) {
+	var isKnown bool
+	mgr, err := jsm.New(jetstream.nc)
+	if err != nil {
+		return false, err
+	}
+	if isKnown, err = mgr.IsKnownStream(streamName); err != nil {
+		return isKnown, err
+	}
+	return isKnown, nil
+}

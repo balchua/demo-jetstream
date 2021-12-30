@@ -60,5 +60,6 @@ func setupInfra(cmd *cobra.Command, args []string) {
 	if err := i.Setup(); err != nil {
 		zap.S().Fatalf("%v", err)
 	}
+	jsi.Close()
 
 }

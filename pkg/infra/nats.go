@@ -94,3 +94,7 @@ func (n *NatsImpl) Fetch(messageCount int, ctx context.Context) ([]*NatsMessage,
 	return natsMessages, nil
 
 }
+
+func (n *NatsImpl) Close() {
+	n.nc.Close()
+}

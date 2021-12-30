@@ -3,10 +3,10 @@ infra:
   seedPath: "hack/sys-seed.txt"
 publish:
   natsUri: "localhost:32422"
-  seedPath: "hack/sys-seed.txt"
+  seedPath: "hack/seed.txt"
 subscribe:
   natsUri: "localhost:32422"
-  seedPath: "hack/sys-seed.txt"
+  seedPath: "hack/seed.txt"
   sleepTimeInMillis: 3000
 monitor:
   scheme: "http"

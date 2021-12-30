@@ -24,3 +24,7 @@ func (m *MockNats) Fetch(messageCount int, ctx context.Context) ([]*NatsMessage,
 	args := m.Called(messageCount, ctx)
 	return args.Get(0).([]*NatsMessage), args.Error(1)
 }
+
+func (m *MockNats) Close() {
+	return
+}

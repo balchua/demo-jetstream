@@ -64,6 +64,8 @@ func (testSuite *ConsumerTestSuite) TestFetchMessage() {
 		}
 	}
 
+	mockNats.AssertNumberOfCalls(testSuite.T(), "Fetch", 1)
+
 	assert.Equal(testSuite.T(), true, logExist)
 }
 
@@ -97,7 +99,8 @@ func (testSuite *ConsumerTestSuite) TestFailToSubscribe() {
 			logExist = true
 		}
 	}
-
+	mockNats.AssertNumberOfCalls(testSuite.T(), "Subscribe", 1)
+	mockNats.AssertNumberOfCalls(testSuite.T(), "Fetch", 0)
 	assert.Equal(testSuite.T(), true, logExist)
 }
 
@@ -132,7 +135,7 @@ func (testSuite *ConsumerTestSuite) TestFailToFetch() {
 			logExist = true
 		}
 	}
-
+	mockNats.AssertNumberOfCalls(testSuite.T(), "Fetch", 1)
 	assert.Equal(testSuite.T(), true, logExist)
 }
 
@@ -167,7 +170,8 @@ func (testSuite *ConsumerTestSuite) TestFetchInvalidMessage() {
 			logExist = true
 		}
 	}
-
+	mockNats.AssertNumberOfCalls(testSuite.T(), "Fetch", 1)
+	mockNats.AssertNumberOfCalls(testSuite.T(), "Subscribe", 1)
 	assert.Equal(testSuite.T(), true, logExist)
 }
 
