@@ -1,6 +1,8 @@
 package infra
 
 import (
+	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -52,6 +54,58 @@ func (n *NatsTestSuite) TestPublishMessage() {
 	}
 	natsInfo.Close()
 }
+
+func (n *NatsTestSuite) TestSubscribeToConsumer() {
+
+	seedFile := "hack/seed.txt"
+	natsUri := "localhost:32422"
+	natsInfo, err := NewNats(seedFile, natsUri)
+	if err != nil {
+		n.Fail("unable to connect to nats server\n %v", err)
+	}
+
+	if err := natsInfo.Subscribe(n.consumerSubject, n.consumerName); err != nil {
+		n.Fail("unable to setup subscription to nats server\n %v", err)
+	}
+	natsInfo.Close()
+}
+
+func (n *NatsTestSuite) TestFetchMessage() {
+
+	seedFile := "hack/seed.txt"
+	natsUri := "localhost:32422"
+	natsInfo, err := NewNats(seedFile, natsUri)
+	if err != nil {
+		n.Fail("unable to connect to nats server\n %v", err)
+	}
+	msgString := `{"TransactionID":0,"UserID":1234,"Status":"KO","Amount": 123.45}`
+	msg := NewNatsMessage("USER_TXN.maker")
+	msg.AddHeader("test", "halo")
+	msg.SetBody([]byte(msgString))
+	if err := natsInfo.Publish(msg); err != nil {
+		n.Fail("unable to publish message %v", err)
+	}
+	if err := natsInfo.Subscribe(n.consumerSubject, n.consumerName); err != nil {
+		n.Fail("unable to setup subscription to nats server\n %v", err)
+	}
+
+	//max of 5 seconds
+	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(5*time.Second))
+	msgs, err := natsInfo.Fetch(100, ctx)
+	if err != nil {
+		n.Fail("unable to fetch messages %v", err)
+	}
+	for _, msg := range msgs {
+		msg.Ack()
+	}
+
+	fmt.Printf("messages count %d", len(msgs))
+
+	n.Assert().Greater(int(len(msgs)), int(0))
+	natsInfo.Close()
+	cancelFunc()
+}
+
 func (s *NatsTestSuite) createStream() {
 
 	seedFile := "hack/sys-seed.txt"
