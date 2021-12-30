@@ -25,7 +25,9 @@ func NewConsumer(natsInfo infra.Nats) *Consumer {
 func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, consumerName string, sleepTimeInMillis int) {
 	err := c.natsInfo.Subscribe(subject, consumerName)
 	if err != nil {
-		zap.S().Fatalf("unable to subscribe to subject %s, %v", subject, err)
+		zap.S().Errorf("unable to subscribe to subject %s, %v", subject, err)
+		done <- true
+		return
 	}
 
 	for {
@@ -39,7 +41,9 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 		msgs, err := c.natsInfo.Fetch(100, ctx)
 
 		if err != nil {
-			zap.S().Fatalf("unable to consume message %v", err)
+			zap.S().Errorf("unable to consume message %v", err)
+			done <- true
+			return
 		}
 		for _, msg := range msgs {
 			msg.Ack()

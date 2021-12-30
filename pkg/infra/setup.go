@@ -39,7 +39,8 @@ func (i *InfraSetup) Setup() error {
 		jsm.FilterStreamBySubject(i.consumerSubject),
 		jsm.AcknowledgeExplicit(),
 		jsm.DeliverAllAvailable(),
-		jsm.ReplayAsReceived()); err != nil {
+		jsm.ReplayAsReceived(),
+		jsm.MaxWaiting(1)); err != nil {
 		return err
 	}
 

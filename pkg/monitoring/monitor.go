@@ -11,17 +11,30 @@ import (
 	"go.uber.org/zap"
 )
 
-func Monitor(monitorConfig config.Monitor) {
-	for {
-		doMonitor(monitorConfig)
-	}
-
+type Monitor struct {
+	client  *http.Client
+	baseURL string
+	config  config.Monitor
 }
 
-func doMonitor(mc config.Monitor) {
-	c := http.Client{Timeout: time.Duration(1) * time.Second}
-	uri := fmt.Sprintf("%s://%s:%d/jsz?consumers=true", mc.Scheme, mc.Host, mc.Port)
-	resp, err := c.Get(uri)
+func NewMonitor(monitorConfig config.Monitor, client *http.Client, baseURL string) *Monitor {
+
+	return &Monitor{
+		client:  client,
+		baseURL: baseURL,
+		config:  monitorConfig,
+	}
+}
+
+func (m *Monitor) StartMonitor() {
+	for {
+		m.doMonitor(m.config)
+	}
+}
+
+func (m *Monitor) doMonitor(mc config.Monitor) {
+	uri := fmt.Sprintf("%s/jsz?consumers=true", m.baseURL)
+	resp, err := m.client.Get(uri)
 	if err != nil {
 		zap.S().Errorf("%v", err)
 		return

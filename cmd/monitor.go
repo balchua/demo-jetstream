@@ -16,6 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/balchua/demo-jetstream/pkg/monitoring"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +30,10 @@ var monitorCmd = &cobra.Command{
 	Short: "monitor the message lag",
 	Long:  `Monitors and prints the message lag per second`,
 	Run: func(cmd *cobra.Command, args []string) {
-		monitoring.Monitor(appConfig.M)
+		c := http.Client{Timeout: time.Duration(1) * time.Second}
+		uri := fmt.Sprintf("%s://%s:%d", appConfig.M.Scheme, appConfig.M.Host, appConfig.M.Port)
+		m := monitoring.NewMonitor(appConfig.M, &c, uri)
+		m.StartMonitor()
 	},
 }
 
