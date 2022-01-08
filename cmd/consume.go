@@ -21,6 +21,7 @@ import (
 	"os/signal"
 
 	"github.com/balchua/demo-jetstream/pkg/consumer"
+	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -48,6 +49,9 @@ func init() {
 }
 
 func consume(cmd *cobra.Command, args []string) {
+
+	d := dtrace.SetupTracer()
+	defer d.Close()
 	n, err := infra.NewNats(appConfig.S.SeedPath, appConfig.S.NatsUri)
 	if err != nil {
 		zap.S().Fatalf("%v", err)

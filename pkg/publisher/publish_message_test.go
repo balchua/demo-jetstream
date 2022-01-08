@@ -1,6 +1,7 @@
 package publisher
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -40,7 +41,7 @@ func (testSuite *PublisherTestSuite) TestPublishMessage() {
 
 	mockNats.On("Publish", mock.Anything).Return(nil)
 
-	err := pub.SendMessage(testMessage, testSuite.streamName)
+	err := pub.SendMessage(context.Background(), testMessage, testSuite.streamName)
 	assert.Nil(testSuite.T(), err)
 }
 
@@ -55,7 +56,7 @@ func (testSuite *PublisherTestSuite) TestFailToPublishMessage() {
 
 	mockNats.On("Publish", mock.Anything).Return(errors.New("fail to publish"))
 
-	err := pub.SendMessage(testMessage, testSuite.streamName)
+	err := pub.SendMessage(context.Background(), testMessage, testSuite.streamName)
 	assert.NotNil(testSuite.T(), err)
 	assert.Equal(testSuite.T(), "fail to publish", err.Error())
 }

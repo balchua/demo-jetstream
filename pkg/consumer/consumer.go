@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/balchua/demo-jetstream/pkg/model"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.uber.org/zap"
 )
@@ -48,7 +51,13 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 		for _, msg := range msgs {
 			msg.Ack()
 			var userTxn model.UserTransaction
+			propagator := otel.GetTextMapPropagator()
+			carrier := dtrace.NewNatsMessageCarrier(msg)
+			ctx = propagator.Extract(ctx, carrier)
+			var span trace.Span
+			ctx, span = otel.Tracer("listener").Start(ctx, "Listen")
 			zap.S().Infof("header: [%s]", msg.GetHeader("CUSTOM_HEADER"))
+			zap.S().Infof("header: [%s]", msg.GetHeader("traceparent"))
 			err := json.Unmarshal(msg.GetBody(), &userTxn)
 			zap.S().Infof("%s", msg.GetBody())
 			if err != nil {
@@ -56,6 +65,7 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			}
 			zap.S().Infof("TransactionId: %d, Amount: %s, Status: %s", userTxn.TransactionID, userTxn.Amount.String(), userTxn.Status)
 			time.Sleep(time.Duration(sleepTimeInMillis) * time.Millisecond)
+			span.End()
 		}
 		zap.S().Debug("done processing messages from this batch")
 
