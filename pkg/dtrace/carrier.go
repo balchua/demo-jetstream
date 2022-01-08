@@ -29,7 +29,7 @@ func (p NatsMessageCarrier) Set(key, val string) {
 func (p NatsMessageCarrier) Keys() []string {
 	out := make([]string, len(p.msg.GetHeaders()))
 	var i int = 0
-	for k, _ := range p.msg.GetHeaders() {
+	for k := range p.msg.GetHeaders() {
 		out[i] = string(k)
 	}
 	return out
