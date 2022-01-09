@@ -50,7 +50,7 @@ func init() {
 
 func consume(cmd *cobra.Command, args []string) {
 
-	d := dtrace.SetupTracer()
+	d := dtrace.SetupTracer(appConfig.T)
 	defer d.Close()
 	n, err := infra.NewNats(appConfig.S.SeedPath, appConfig.S.NatsUri)
 	if err != nil {

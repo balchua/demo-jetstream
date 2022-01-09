@@ -2,12 +2,11 @@ package dtrace
 
 import (
 	"context"
-	"io"
-	"os"
 
+	"github.com/balchua/demo-jetstream/pkg/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -18,56 +17,35 @@ import (
 type Dtrace struct {
 	tp  *sdktrace.TracerProvider
 	exp sdktrace.SpanExporter
-	f   *os.File
 }
 
-func SetupTracer() *Dtrace {
-	// Write telemetry data to a file.
-	f, err := os.Create("traces.txt")
+func SetupTracer(tracingConfig config.Tracing) *Dtrace {
+	// Create the Jaeger exporter
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(tracingConfig.JaegerUrl)))
 	if err != nil {
 		return nil
 	}
-	exp, err := newExporter(f)
-	if err != nil {
-		return nil
-	}
-
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),
-		sdktrace.WithResource(newResource()),
+		sdktrace.WithResource(newResource(tracingConfig.ServiceName)),
 	)
 
 	otel.SetTracerProvider(tp)
+
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	return &Dtrace{
 		tp:  tp,
 		exp: exp,
-		f:   f,
 	}
 }
 
-func newResource() *resource.Resource {
-	r, _ := resource.Merge(
-		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("publisher"),
-			semconv.ServiceVersionKey.String("v0.1.0"),
-			attribute.String("environment", "demo"),
-		),
-	)
-	return r
-}
-
-// newExporter returns a console exporter.
-func newExporter(w io.Writer) (sdktrace.SpanExporter, error) {
-	return stdouttrace.New(
-		stdouttrace.WithWriter(w),
-		// Use human-readable output.
-		stdouttrace.WithPrettyPrint(),
-		// Do not print timestamps for the demo.
-		stdouttrace.WithoutTimestamps(),
+func newResource(serviceName string) *resource.Resource {
+	return resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(serviceName),
+		semconv.ServiceVersionKey.String("v0.1.0"),
+		attribute.String("environment", "demo"),
 	)
 }
 

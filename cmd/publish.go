@@ -54,7 +54,7 @@ func init() {
 
 func publish(cmd *cobra.Command, args []string) {
 
-	d := dtrace.SetupTracer()
+	d := dtrace.SetupTracer(appConfig.T)
 	defer d.Close()
 
 	n, err := infra.NewNats(appConfig.P.SeedPath, appConfig.P.NatsUri)

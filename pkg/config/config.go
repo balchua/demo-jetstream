@@ -5,6 +5,7 @@ type AppConfiguration struct {
 	P Publisher  `mapstructure:"publish"`
 	M Monitor    `mapstructure:"monitor"`
 	S Subscriber `mapstructure:"subscribe"`
+	T Tracing    `mapstructure:"tracing"`
 }
 
 type Infra struct {
@@ -31,4 +32,9 @@ type Monitor struct {
 	ConsumerName string `mapstructure:"consumerName"`
 	StreamName   string `mapstructure:"streamName"`
 	PollSeconds  int    `mapstructure:"pollSeconds"`
+}
+
+type Tracing struct {
+	JaegerUrl   string `mapstructure:"jaeger-url"`
+	ServiceName string `mapstructure:"service-name"`
 }
