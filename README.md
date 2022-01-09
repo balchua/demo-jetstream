@@ -156,11 +156,11 @@ infra:
   seedPath: "hack/sys-seed.txt"
 publish:
   natsUri: "localhost:32422"
-  seedPath: "hack/sys-seed.txt"
+  seedPath: "hack/seed.txt"
 subscribe:
   natsUri: "localhost:32422"
-  seedPath: "hack/sys-seed.txt"
-  sleepTimeInMillis: 10
+  seedPath: "hack/seed.txt"
+  sleepTimeInMillis: 3000
 monitor:
   scheme: "http"
   host: "localhost"
@@ -169,6 +169,25 @@ monitor:
   consumerName: "GRP_MAKER"
   streamName: "USER_TXN"
   pollSeconds: 1
+tracing:
+  jaeger-url: http://localhost:30268/api/traces
+  service-name: natsjs-demo
+```
+
+TODO: Add Jaeger configuration
+
+## Port-forwarding
+
+To allow the application to access NATS Jetstream,
+
+```shell
+kubectl -n nats port-forward svc/bnats 32422:4222
+```
+
+To access NATS monitoring endpoint
+
+```shell
+kubectl -n nats port-forward svc/bnats 32822:8222
 ```
 
 ## Publishing message to NAT Jetstream stream `USER_TXN`
@@ -203,6 +222,34 @@ The monitoring will check the message lag of the Consumer `USER_TXN.maker` in th
 
 ./demo-jetstream consume --config "hack/config.yaml" --consumerName "GRP_MAKER" --subscriberSubject "USER_TXN.maker"
 ```
+
+## Enabling distributed tracing
+
+Using MicroK8s, enable Jaeger
+
+```shell
+kubectl create ns observability
+microk8s enable jaeger:observability
+```
+##  Accessing Jaeger
+
+### To enable Jaeger collector
+
+```shell
+kubectl -n observability port-forward svc/simplest-collector 30268:14268
+```
+
+### To access Jaeger UI
+
+```shell
+kubectl -n observability port-forward svc/simplest-query 30686:16686
+```
+
+Sample trace
+
+![distributed traces](docs/traces-sample.png)
+
+
 ## Create Postgres DB
 
 TODO

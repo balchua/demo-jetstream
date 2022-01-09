@@ -16,9 +16,15 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
+
+	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/balchua/demo-jetstream/pkg/publisher"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
+
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -43,19 +49,28 @@ func init() {
 	publishCmd.Flags().StringVarP(&messageSubject, "messageSubject", "b", "USER_TXN.>*", "specify the subject of the message to publish")
 	publishCmd.Flags().StringVarP(&pubMessage, "message", "m", "", "the message to send to the stream")
 	publishCmd.Flags().IntVarP(&maxCount, "maxCount", "c", 10, "the message to send to the stream")
+
 }
 
 func publish(cmd *cobra.Command, args []string) {
+
+	d := dtrace.SetupTracer(appConfig.T)
+	defer d.Close()
 
 	n, err := infra.NewNats(appConfig.P.SeedPath, appConfig.P.NatsUri)
 	if err != nil {
 		zap.S().Fatalf("%v", err)
 	}
 
+	ctx := context.Background()
+	var span trace.Span
+
 	pub := publisher.NewTransactionPublisher(n)
 	for i := 0; i < maxCount; i++ {
+		ctx, span = otel.Tracer("publisher").Start(ctx, "LoopPublish")
 		//pub.Publish("{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}", "USER_TXN.maker")
-		pub.SendMessage(pubMessage, messageSubject)
+		pub.SendMessage(ctx, pubMessage, messageSubject)
+		span.End()
 	}
 
 }

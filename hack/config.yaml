@@ -16,4 +16,6 @@ monitor:
   consumerName: "GRP_MAKER"
   streamName: "USER_TXN"
   pollSeconds: 1
-
+tracing:
+  jaeger-url: http://localhost:30268/api/traces
+  service-name: natsjs-demo
