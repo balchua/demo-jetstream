@@ -91,7 +91,7 @@ func (n *NatsTestSuite) TestFetchMessage() {
 
 	//max of 5 seconds
 	ctx, cancelFunc := context.WithDeadline(context.Background(), time.Now().Add(5*time.Second))
-	msgs, err := natsInfo.Fetch(100, ctx)
+	msgs, err := natsInfo.Fetch(10, ctx)
 	if err != nil {
 		n.Fail("unable to fetch messages %v", err)
 	}

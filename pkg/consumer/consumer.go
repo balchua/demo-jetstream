@@ -41,7 +41,7 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			return
 		default:
 		}
-		msgs, err := c.natsInfo.Fetch(100, ctx)
+		msgs, err := c.natsInfo.Fetch(10, ctx)
 
 		if err != nil {
 			zap.S().Errorf("unable to consume message %v", err)
