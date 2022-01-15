@@ -7,7 +7,7 @@ publish:
 subscribe:
   natsUri: "localhost:32422"
   seedPath: "hack/seed.txt"
-  sleepTimeInMillis: 3000
+  sleepTimeInMillis: 10
 monitor:
   scheme: "http"
   host: "localhost"

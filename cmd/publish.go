@@ -64,12 +64,13 @@ func publish(cmd *cobra.Command, args []string) {
 
 	ctx := context.Background()
 	var span trace.Span
+	var spanctx context.Context
 
 	pub := publisher.NewTransactionPublisher(n)
 	for i := 0; i < maxCount; i++ {
-		ctx, span = otel.Tracer("publisher").Start(ctx, "LoopPublish")
+		spanctx, span = otel.Tracer("publisher").Start(ctx, "LoopPublish")
 		//pub.Publish("{\"TransactionID\":1,\"UserID\":1,\"Status\":\"OK\",\"Amount\": 456.89}", "USER_TXN.maker")
-		pub.SendMessage(ctx, pubMessage, messageSubject)
+		pub.SendMessage(spanctx, pubMessage, messageSubject)
 		span.End()
 	}
 

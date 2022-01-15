@@ -31,6 +31,7 @@ func (p NatsMessageCarrier) Keys() []string {
 	var i int = 0
 	for k := range p.msg.GetHeaders() {
 		out[i] = string(k)
+		i++
 	}
 	return out
 }

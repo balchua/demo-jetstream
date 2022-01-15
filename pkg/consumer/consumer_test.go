@@ -45,7 +45,7 @@ func (testSuite *ConsumerTestSuite) TestFetchMessage() {
 	messages = append(messages, msg)
 
 	mockNats.On("Subscribe", testSuite.streamName, testSuite.consumerName).Return(nil)
-	mockNats.On("Fetch", 100, ctx).Return(messages, nil)
+	mockNats.On("Fetch", 1, ctx).Return(messages, nil)
 
 	worker := make(chan bool)
 	go con.Listen(ctx, worker, testSuite.streamName, testSuite.consumerName, 100)
@@ -117,7 +117,7 @@ func (testSuite *ConsumerTestSuite) TestFailToFetch() {
 	messages = append(messages, msg)
 
 	mockNats.On("Subscribe", testSuite.streamName, testSuite.consumerName).Return(nil)
-	mockNats.On("Fetch", 100, ctx).Return(messages, errors.New("fetch data failed"))
+	mockNats.On("Fetch", 1, ctx).Return(messages, errors.New("fetch data failed"))
 
 	worker := make(chan bool)
 	go con.Listen(ctx, worker, testSuite.streamName, testSuite.consumerName, 100)
@@ -152,7 +152,7 @@ func (testSuite *ConsumerTestSuite) TestFetchInvalidMessage() {
 	messages = append(messages, msg)
 
 	mockNats.On("Subscribe", testSuite.streamName, testSuite.consumerName).Return(nil)
-	mockNats.On("Fetch", 100, ctx).Return(messages, nil)
+	mockNats.On("Fetch", 1, ctx).Return(messages, nil)
 
 	worker := make(chan bool)
 	go con.Listen(ctx, worker, testSuite.streamName, testSuite.consumerName, 100)
