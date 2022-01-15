@@ -203,6 +203,39 @@ The monitoring will check the message lag of the Consumer `USER_TXN.maker` in th
 
 ./demo-jetstream consume --config "hack/config.yaml" --consumerName "GRP_MAKER" --subscriberSubject "USER_TXN.maker"
 ```
+<<<<<<< Updated upstream
+=======
+
+## Enabling distributed tracing
+
+Using MicroK8s, enable Jaeger
+
+```shell
+kubectl create ns observability
+microk8s enable jaeger:observability
+```
+##  Accessing Jaeger
+
+### To enable Jaeger collector
+
+```shell
+kubectl -n observability port-forward svc/simplest-collector 30268:14268
+```
+
+### To access Jaeger UI
+
+```shell
+kubectl -n observability port-forward svc/simplest-query 30686:16686
+```
+
+Sample trace
+
+![Sample distributed traces](docs/trace-1.png)
+
+![Sample distributed traces](docs/trace-2.png)
+
+
+>>>>>>> Stashed changes
 ## Create Postgres DB
 
 TODO
