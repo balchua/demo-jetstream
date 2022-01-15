@@ -1,7 +1,12 @@
 package publisher
 
 import (
+	"context"
+
+	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -16,9 +21,16 @@ func NewTransactionPublisher(natsInfo infra.Nats) *UserTransactionPublisher {
 	}
 }
 
-func (u *UserTransactionPublisher) SendMessage(message string, subject string) error {
+func (u *UserTransactionPublisher) SendMessage(ctx context.Context, message string, subject string) error {
+	var span trace.Span
+	propagator := otel.GetTextMapPropagator()
+
+	ctx, span = otel.Tracer("publisher").Start(ctx, "SendMessage")
+	defer span.End()
 	zap.S().Infof("%s", message)
 	m := infra.NewNatsMessage(subject)
+	carrier := dtrace.NewNatsMessageCarrier(m)
+	propagator.Inject(ctx, carrier)
 	m.AddHeader("CUSTOM_HEADER", "user-txn")
 
 	m.SetBody([]byte(message))
@@ -26,6 +38,7 @@ func (u *UserTransactionPublisher) SendMessage(message string, subject string) e
 	if err != nil {
 		return err
 	}
+
 	return nil
 
 }
