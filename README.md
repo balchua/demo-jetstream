@@ -247,7 +247,8 @@ kubectl -n observability port-forward svc/simplest-query 30686:16686
 
 Sample trace
 
-![distributed traces](docs/traces-sample.png)
+![distributed traces](docs/trace-1.png)
+![distributed traces](docs/trace-2.png)
 
 
 ## Create Postgres DB
