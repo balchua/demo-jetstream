@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/balchua/demo-jetstream/pkg/api/verifier"
 	"github.com/balchua/demo-jetstream/pkg/consumer"
 	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
@@ -57,8 +58,9 @@ func consume(cmd *cobra.Command, args []string) {
 		zap.S().Fatalf("%v", err)
 	}
 
+	api, err := verifier.NewTransactionVerifierClientWrapper(appConfig.A)
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	con := consumer.NewConsumer(n)
+	con := consumer.NewConsumer(n, api)
 
 	worker := make(chan bool)
 	go con.Listen(ctx, worker, subscriberSubject, subscribeConsumerName, appConfig.S.SleepTimeInMillis)

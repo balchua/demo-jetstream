@@ -223,6 +223,27 @@ The monitoring will check the message lag of the Consumer `USER_TXN.maker` in th
 ./demo-jetstream consume --config "hack/config.yaml" --consumerName "GRP_MAKER" --subscriberSubject "USER_TXN.maker"
 ```
 
+
+## Verifier Service
+
+Generate the protos. from project root
+
+```
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    pkg/api/verifier/verifier.proto
+```
+
+This service is called by the consumer when it received a message in NATS Jetstream.  
+
+The configuration is in [`config.yaml`](hack/config.yaml)
+
+```yaml
+api:
+  host: "localhost"
+  port: 50055
+```
+
 ## Enabling distributed tracing
 
 Using MicroK8s, enable Jaeger
@@ -249,7 +270,6 @@ Sample trace
 
 ![distributed traces](docs/trace-1.png)
 ![distributed traces](docs/trace-2.png)
-
 
 ## Create Postgres DB
 

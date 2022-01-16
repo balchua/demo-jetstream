@@ -6,6 +6,7 @@ type AppConfiguration struct {
 	M Monitor    `mapstructure:"monitor"`
 	S Subscriber `mapstructure:"subscribe"`
 	T Tracing    `mapstructure:"tracing"`
+	A ApiConfig  `mapstructure:"api"`
 }
 
 type Infra struct {
@@ -37,4 +38,9 @@ type Monitor struct {
 type Tracing struct {
 	JaegerUrl   string `mapstructure:"jaeger-url"`
 	ServiceName string `mapstructure:"service-name"`
+}
+
+type ApiConfig struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/balchua/demo-jetstream/pkg/api/verifier"
 	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
 	"github.com/balchua/demo-jetstream/pkg/model"
@@ -15,13 +16,15 @@ import (
 )
 
 type Consumer struct {
-	natsInfo infra.Nats
+	natsInfo       infra.Nats
+	verifierClient verifier.ITransactionVerifier
 }
 
-func NewConsumer(natsInfo infra.Nats) *Consumer {
+func NewConsumer(natsInfo infra.Nats, verifierClient verifier.ITransactionVerifier) *Consumer {
 
 	return &Consumer{
-		natsInfo: natsInfo,
+		natsInfo:       natsInfo,
+		verifierClient: verifierClient,
 	}
 }
 
@@ -37,6 +40,7 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 		select {
 		case <-ctx.Done():
 			zap.S().Info("ready to end worker process")
+			c.verifierClient.Close()
 			done <- true
 			return
 		default:
@@ -55,7 +59,8 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			carrier := dtrace.NewNatsMessageCarrier(msg)
 			ctx = propagator.Extract(ctx, carrier)
 			var span trace.Span
-			ctx, span = otel.Tracer("listener").Start(ctx, "Listen")
+			var spanctx context.Context
+			spanctx, span = otel.Tracer("listener").Start(ctx, "Listen")
 			zap.S().Infof("header: [%s]", msg.GetHeader("CUSTOM_HEADER"))
 			zap.S().Infof("header: [%s]", msg.GetHeader("traceparent"))
 			err := json.Unmarshal(msg.GetBody(), &userTxn)
@@ -64,7 +69,20 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 				zap.S().Errorf("%v", err)
 			}
 			zap.S().Infof("TransactionId: %d, Amount: %s, Status: %s", userTxn.TransactionID, userTxn.Amount.String(), userTxn.Status)
+			tx := &verifier.Transaction{
+				UserId:        int64(userTxn.UserID),
+				TransactionID: int64(userTxn.TransactionID),
+				Amount:        userTxn.Amount.String(),
+				Status:        userTxn.Status,
+			}
+
+			response, _ := c.verifierClient.VerifyTransaction(spanctx, &verifier.VerifyTransactionRequest{
+				Tx: tx,
+			})
+
 			time.Sleep(time.Duration(sleepTimeInMillis) * time.Millisecond)
+			zap.S().Infof("Response status code [%d] with message [%s]", response.Code, response.Message)
+
 			span.End()
 		}
 		zap.S().Debug("done processing messages from this batch")

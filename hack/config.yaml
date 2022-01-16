@@ -19,3 +19,6 @@ monitor:
 tracing:
   jaeger-url: http://localhost:30268/api/traces
   service-name: natsjs-demo
+api:
+  host: "localhost"
+  port: 50055

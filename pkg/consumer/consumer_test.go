@@ -8,9 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/balchua/demo-jetstream/pkg/api/verifier"
 	"github.com/balchua/demo-jetstream/pkg/infra"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -22,6 +24,8 @@ type ConsumerTestSuite struct {
 	logs         *observer.ObservedLogs
 	streamName   string
 	consumerName string
+	request      *verifier.VerifyTransactionRequest
+	response     *verifier.VerifyTransactionResponse
 }
 
 func (testSuite *ConsumerTestSuite) SetupTest() {
@@ -31,11 +35,30 @@ func (testSuite *ConsumerTestSuite) SetupTest() {
 	zap.ReplaceGlobals(observedLogger)
 	testSuite.streamName = "TEST"
 	testSuite.consumerName = "TEST_CONSUMER"
+	tx := &verifier.Transaction{
+		Status:        "OK",
+		TransactionID: 1,
+		Amount:        "459.89",
+		UserId:        1,
+	}
+	testSuite.request = &verifier.VerifyTransactionRequest{
+		Tx: tx,
+	}
+
+	testSuite.response = &verifier.VerifyTransactionResponse{
+		Tx:      tx,
+		Code:    verifier.StatusCode_OK,
+		Message: "mock response",
+	}
 }
 func (testSuite *ConsumerTestSuite) TestFetchMessage() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	mockNats := new(infra.MockNats)
-	con := NewConsumer(mockNats)
+	mockApi := new(verifier.MockTransactionVerifier)
+	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
+	mockApi.On("Close").Return(testSuite.response)
+
+	con := NewConsumer(mockNats, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
@@ -72,7 +95,11 @@ func (testSuite *ConsumerTestSuite) TestFetchMessage() {
 func (testSuite *ConsumerTestSuite) TestFailToSubscribe() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	mockNats := new(infra.MockNats)
-	con := NewConsumer(mockNats)
+	mockApi := new(verifier.MockTransactionVerifier)
+	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
+	mockApi.On("Close").Return(testSuite.response)
+
+	con := NewConsumer(mockNats, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
@@ -107,7 +134,11 @@ func (testSuite *ConsumerTestSuite) TestFailToSubscribe() {
 func (testSuite *ConsumerTestSuite) TestFailToFetch() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	mockNats := new(infra.MockNats)
-	con := NewConsumer(mockNats)
+	mockApi := new(verifier.MockTransactionVerifier)
+	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
+	mockApi.On("Close").Return(testSuite.response)
+
+	con := NewConsumer(mockNats, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
@@ -142,7 +173,11 @@ func (testSuite *ConsumerTestSuite) TestFailToFetch() {
 func (testSuite *ConsumerTestSuite) TestFetchInvalidMessage() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	mockNats := new(infra.MockNats)
-	con := NewConsumer(mockNats)
+	mockApi := new(verifier.MockTransactionVerifier)
+	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
+	mockApi.On("Close").Return(testSuite.response)
+
+	con := NewConsumer(mockNats, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
