@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/balchua/demo-jetstream/pkg/config"
+	"github.com/balchua/demo-jetstream/pkg/metrics"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -39,6 +40,7 @@ var rootCmd = &cobra.Command{
 }
 
 var appConfig *config.AppConfiguration
+var appMetrics *metrics.Metrics
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.

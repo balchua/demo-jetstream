@@ -1,11 +1,11 @@
 infra:
-  natsUri: "nats://localhost:4220"
+  natsUri: "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
   seedPath: "hack/sys-seed.txt"
 publish:
-  natsUri: "nats://localhost:4220"
+  natsUri: "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
   seedPath: "hack/seed.txt"
 subscribe:
-  natsUri: "nats://localhost:4220"
+  natsUri: "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
   seedPath: "hack/seed.txt"
   sleepTimeInMillis: 5
 monitor:

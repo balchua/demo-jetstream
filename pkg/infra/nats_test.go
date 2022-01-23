@@ -40,7 +40,7 @@ func (n *NatsTestSuite) SetupTest() {
 func (n *NatsTestSuite) TestPublishMessage() {
 
 	seedFile := "hack/seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
 	natsInfo, err := NewNats(seedFile, natsUri)
 	if err != nil {
 		n.Fail("unable to connect to nats server\n %v", err)
@@ -58,7 +58,7 @@ func (n *NatsTestSuite) TestPublishMessage() {
 func (n *NatsTestSuite) TestSubscribeToConsumer() {
 
 	seedFile := "hack/seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
 	natsInfo, err := NewNats(seedFile, natsUri)
 	if err != nil {
 		n.Fail("unable to connect to nats server\n %v", err)
@@ -73,7 +73,7 @@ func (n *NatsTestSuite) TestSubscribeToConsumer() {
 func (n *NatsTestSuite) TestFetchMessage() {
 
 	seedFile := "hack/seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
 	natsInfo, err := NewNats(seedFile, natsUri)
 	if err != nil {
 		n.Fail("unable to connect to nats server\n %v", err)
@@ -109,7 +109,7 @@ func (n *NatsTestSuite) TestFetchMessage() {
 func (s *NatsTestSuite) createStream() {
 
 	seedFile := "hack/sys-seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
 	jsi, err := NewJetStream(seedFile, natsUri)
 	if err != nil {
 		s.Fail("unable to connect to jetstream \n%v", err)
@@ -125,7 +125,7 @@ func (s *NatsTestSuite) createStream() {
 func (s *JetstreamTestSuite) createConsumer() {
 
 	seedFile := "hack/sys-seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "nats://localhost:4220,nats://localhost:4221,nats://localhost:4222"
 	jsi, err := NewJetStream(seedFile, natsUri)
 	if err != nil {
 		s.Fail("unable to connect to jetstream \n%v", err)

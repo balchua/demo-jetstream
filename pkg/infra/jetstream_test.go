@@ -37,7 +37,7 @@ func (j *JetstreamTestSuite) SetupTest() {
 func (j *JetstreamTestSuite) TestCreateStream() {
 
 	seedFile := "hack/sys-seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "localhost:4220"
 	jsi, err := NewJetStream(seedFile, natsUri)
 	if err != nil {
 		j.Fail("unable to connect to jetstream \n%v", err)
@@ -53,7 +53,7 @@ func (j *JetstreamTestSuite) TestCreateStream() {
 func (j *JetstreamTestSuite) TestCreateConsumer() {
 
 	seedFile := "hack/sys-seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "localhost:4220"
 	jsi, err := NewJetStream(seedFile, natsUri)
 	if err != nil {
 		j.Fail("unable to connect to jetstream \n%v", err)

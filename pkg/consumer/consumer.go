@@ -3,11 +3,13 @@ package consumer
 import (
 	"context"
 	"encoding/json"
+	"math/rand"
 	"time"
 
 	"github.com/balchua/demo-jetstream/pkg/api/verifier"
 	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
+	"github.com/balchua/demo-jetstream/pkg/metrics"
 	"github.com/balchua/demo-jetstream/pkg/model"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
@@ -18,17 +20,20 @@ import (
 type Consumer struct {
 	natsInfo       infra.Nats
 	verifierClient verifier.ITransactionVerifier
+	appMetrics     *metrics.Metrics
 }
 
-func NewConsumer(natsInfo infra.Nats, verifierClient verifier.ITransactionVerifier) *Consumer {
+func NewConsumer(natsInfo infra.Nats, appMetrics *metrics.Metrics, verifierClient verifier.ITransactionVerifier) *Consumer {
 
 	return &Consumer{
 		natsInfo:       natsInfo,
 		verifierClient: verifierClient,
+		appMetrics:     appMetrics,
 	}
 }
 
 func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, consumerName string, sleepTimeInMillis int) {
+
 	err := c.natsInfo.Subscribe(subject, consumerName)
 	if err != nil {
 		zap.S().Errorf("unable to subscribe to subject %s, %v", subject, err)
@@ -53,6 +58,8 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 			return
 		}
 		for _, msg := range msgs {
+			start := time.Now()
+			rand.Seed(time.Now().UnixNano())
 			msg.Ack()
 			var userTxn model.UserTransaction
 			propagator := otel.GetTextMapPropagator()
@@ -76,14 +83,19 @@ func (c *Consumer) Listen(ctx context.Context, done chan bool, subject string, c
 				Status:        userTxn.Status,
 			}
 
-			response, _ := c.verifierClient.VerifyTransaction(spanctx, &verifier.VerifyTransactionRequest{
+			response, responseErr := c.verifierClient.VerifyTransaction(spanctx, &verifier.VerifyTransactionRequest{
 				Tx: tx,
 			})
 
-			time.Sleep(time.Duration(sleepTimeInMillis) * time.Millisecond)
-			zap.S().Infof("Response status code [%d] with message [%s]", response.Code, response.Message)
+			time.Sleep(time.Duration(rand.Intn(sleepTimeInMillis)) * time.Millisecond)
+			if responseErr == nil {
+				zap.S().Infof("Response status code [%d] with message [%s]", response.Code, response.Message)
+			}
 
 			span.End()
+			processDuration := time.Since(start)
+			zap.S().Debugf("elapsed: %f", processDuration.Seconds())
+			c.appMetrics.Observe(processDuration)
 		}
 		zap.S().Debug("done processing messages from this batch")
 

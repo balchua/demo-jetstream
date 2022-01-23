@@ -36,7 +36,7 @@ func (s *SetupInfraTestSuite) SetupTest() {
 
 func (s *SetupInfraTestSuite) TestITSetupInfra() {
 	seedFile := "hack/sys-seed.txt"
-	natsUri := "localhost:32422"
+	natsUri := "localhost:4220"
 	jsi, err := NewJetStream(seedFile, natsUri)
 
 	if err != nil {

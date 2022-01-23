@@ -31,7 +31,10 @@ func NewInfraSetup(jetstream JetStream, streamName, streamSubjects, consumerName
 }
 func (i *InfraSetup) Setup() error {
 
-	if err := i.jetstream.CreateStream(i.streamName, jsm.Subjects(i.streamSubjects), jsm.MaxAge(i.streamMaxAge), jsm.FileStorage()); err != nil {
+	if err := i.jetstream.CreateStream(i.streamName,
+		jsm.Subjects(i.streamSubjects),
+		jsm.MaxAge(i.streamMaxAge),
+		jsm.FileStorage()); err != nil {
 		return err
 	}
 

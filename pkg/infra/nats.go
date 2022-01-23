@@ -14,14 +14,14 @@ type NatsImpl struct {
 	sub *nats.Subscription
 }
 
-func NewNats(seedFile string, natsUri string) (*NatsImpl, error) {
+func NewNats(seedFile string, natsUris string) (*NatsImpl, error) {
 	opt, err := nats.NkeyOptionFromSeed("hack/seed.txt")
 
 	if err != nil {
 		zap.S().Fatalf("unable to get nkey seed %v", err)
 	}
 
-	nc, err := nats.Connect("localhost:32422", opt)
+	nc, err := nats.Connect(natsUris, opt)
 	if err != nil {
 		zap.S().Fatalf("unable to connect to nats server %v", err)
 	}

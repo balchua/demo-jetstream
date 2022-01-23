@@ -10,6 +10,7 @@ import (
 
 	"github.com/balchua/demo-jetstream/pkg/api/verifier"
 	"github.com/balchua/demo-jetstream/pkg/infra"
+	"github.com/balchua/demo-jetstream/pkg/metrics"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -26,6 +27,7 @@ type ConsumerTestSuite struct {
 	consumerName string
 	request      *verifier.VerifyTransactionRequest
 	response     *verifier.VerifyTransactionResponse
+	appMetrics   *metrics.Metrics
 }
 
 func (testSuite *ConsumerTestSuite) SetupTest() {
@@ -33,6 +35,7 @@ func (testSuite *ConsumerTestSuite) SetupTest() {
 	observedZapCore, testSuite.logs = observer.New(zap.InfoLevel)
 	observedLogger := zap.New(observedZapCore)
 	zap.ReplaceGlobals(observedLogger)
+	testSuite.appMetrics = metrics.NewMetrics()
 	testSuite.streamName = "TEST"
 	testSuite.consumerName = "TEST_CONSUMER"
 	tx := &verifier.Transaction{
@@ -58,7 +61,7 @@ func (testSuite *ConsumerTestSuite) TestFetchMessage() {
 	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
 	mockApi.On("Close").Return(testSuite.response)
 
-	con := NewConsumer(mockNats, mockApi)
+	con := NewConsumer(mockNats, testSuite.appMetrics, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
@@ -99,7 +102,7 @@ func (testSuite *ConsumerTestSuite) TestFailToSubscribe() {
 	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
 	mockApi.On("Close").Return(testSuite.response)
 
-	con := NewConsumer(mockNats, mockApi)
+	con := NewConsumer(mockNats, testSuite.appMetrics, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
@@ -138,7 +141,7 @@ func (testSuite *ConsumerTestSuite) TestFailToFetch() {
 	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
 	mockApi.On("Close").Return(testSuite.response)
 
-	con := NewConsumer(mockNats, mockApi)
+	con := NewConsumer(mockNats, testSuite.appMetrics, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")
@@ -177,7 +180,7 @@ func (testSuite *ConsumerTestSuite) TestFetchInvalidMessage() {
 	mockApi.On("VerifyTransaction", mock.Anything, mock.Anything).Return(testSuite.response, nil)
 	mockApi.On("Close").Return(testSuite.response)
 
-	con := NewConsumer(mockNats, mockApi)
+	con := NewConsumer(mockNats, testSuite.appMetrics, mockApi)
 
 	var messages []*infra.NatsMessage
 	msg := infra.NewNatsMessage("TEST")

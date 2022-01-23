@@ -24,6 +24,7 @@ import (
 	"github.com/balchua/demo-jetstream/pkg/consumer"
 	"github.com/balchua/demo-jetstream/pkg/dtrace"
 	"github.com/balchua/demo-jetstream/pkg/infra"
+	"github.com/balchua/demo-jetstream/pkg/metrics"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/sys/unix"
@@ -57,10 +58,11 @@ func consume(cmd *cobra.Command, args []string) {
 	if err != nil {
 		zap.S().Fatalf("%v", err)
 	}
-
+	appMetrics = metrics.NewMetrics()
+	go appMetrics.Start()
 	api, err := verifier.NewTransactionVerifierClientWrapper(appConfig.A)
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	con := consumer.NewConsumer(n, api)
+	con := consumer.NewConsumer(n, appMetrics, api)
 
 	worker := make(chan bool)
 	go con.Listen(ctx, worker, subscriberSubject, subscribeConsumerName, appConfig.S.SleepTimeInMillis)

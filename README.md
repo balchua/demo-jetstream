@@ -152,13 +152,13 @@ In this demo, the sample application configuration is defined in [config.yaml](h
 
 ```yaml
 infra:
-  natsUri: "localhost:32422"
+  natsUri: "nats://localhost:4220"
   seedPath: "hack/sys-seed.txt"
 publish:
-  natsUri: "localhost:32422"
+  natsUri: "nats://localhost:4220"
   seedPath: "hack/seed.txt"
 subscribe:
-  natsUri: "localhost:32422"
+  natsUri: "nats://localhost:4220"
   seedPath: "hack/seed.txt"
   sleepTimeInMillis: 3000
 monitor:
@@ -178,10 +178,10 @@ TODO: Add Jaeger configuration
 
 ## Port-forwarding
 
-To allow the application to access NATS Jetstream,
+To allow the application to access NATS Jetstream, you must do port-forward to all nats pods.
 
 ```shell
-kubectl -n nats port-forward svc/bnats 32422:4222
+kubectl -n nats port-forward svc/bnats 4220:4222
 ```
 
 To access NATS monitoring endpoint

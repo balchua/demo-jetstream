@@ -1,12 +1,15 @@
 nats:
   jetstream:
     enabled: true
-
     fileStorage:
       enabled: true
       existingClaim: jetstream-pvc
-      claimStorageSize: 1Gi
-
+      claimStorageSize: 10Gi
+cluster:
+  enabled: false
+  # Cluster name is required, by default will be release name.
+  # name: "nats"
+  replicas: 1
 auth:
   enabled: true
   basic:
