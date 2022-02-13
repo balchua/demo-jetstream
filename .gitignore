@@ -2,3 +2,4 @@
 demo-jetstream*
 **/__debug*
 **/traces.**
+k8s/**

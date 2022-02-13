@@ -36,6 +36,7 @@ var (
 	consumerName    string
 	streamSubjects  string
 	consumerSubject string
+	streamReplicas  int
 )
 
 const SECONDS_IN_A_YEAR = 24 * 365 * time.Hour
@@ -46,6 +47,7 @@ func init() {
 	setupCmd.Flags().StringVarP(&streamSubjects, "streamSubjects", "b", "USER_TXN.>*", "specify the subject the stream is related to, example USER_TXN.>")
 	setupCmd.Flags().StringVarP(&consumerName, "consumerName", "c", "GRP_MAKER", "The durable name of the consumer.")
 	setupCmd.Flags().StringVarP(&consumerSubject, "consumerSubject", "j", "USER_TXN.maker", "The subject where the consumer is subscribed to.")
+	setupCmd.Flags().IntVarP(&streamReplicas, "streamReplicas", "r", 1, "The number of replicas of the stream.")
 }
 
 func setupInfra(cmd *cobra.Command, args []string) {
@@ -56,7 +58,7 @@ func setupInfra(cmd *cobra.Command, args []string) {
 		zap.S().Fatalf("setup failure %v", err)
 	}
 
-	i := infra.NewInfraSetup(jsi, streamName, streamSubjects, consumerName, consumerSubject, SECONDS_IN_A_YEAR)
+	i := infra.NewInfraSetup(jsi, streamName, streamSubjects, consumerName, consumerSubject, SECONDS_IN_A_YEAR, streamReplicas)
 	if err := i.Setup(); err != nil {
 		zap.S().Fatalf("%v", err)
 	}

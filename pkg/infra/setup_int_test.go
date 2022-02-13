@@ -43,7 +43,7 @@ func (s *SetupInfraTestSuite) TestITSetupInfra() {
 		s.Fail("setup failure \n%v", err)
 	}
 
-	i := NewInfraSetup(jsi, s.streamName, s.streamSubjects, s.consumerName, s.consumerSubject, 1*time.Minute)
+	i := NewInfraSetup(jsi, s.streamName, s.streamSubjects, s.consumerName, s.consumerSubject, 1*time.Minute, 1)
 	if err := i.Setup(); err != nil {
 		s.Fail("setup failure \n%v", err)
 	}
